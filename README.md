@@ -86,6 +86,8 @@ We have Dockerfiles optimised for the `dev` local docker machine and `prod` whic
 Let's plan our sprint. We'll use Github project board available here [https://github.com/mitni455/sca-dev-test/projects/1](https://github.com/mitni455/sca-dev-test/projects/1)
 and the [milestones](https://github.com/mitni455/sca-dev-test/milestones)
 
+![Project Plan](https://i.ibb.co/X3N1SxB/Screen-Shot-2019-10-22-at-4-22-56-AM.png)
+
 ### User Stories 
 So the way I translate the wireframes to User Stories, and User Stories to code is as follows. 
 
