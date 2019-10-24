@@ -1,0 +1,111 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Load Balanacer for the SCA Developer Test 
+
+#
+# Paramaters
+# @description Read from the LoadBalancer parameters json (loadbalancer.params.json) to set variables dynamically
+# 
+# @param {string} key - Environment name 
+# @usage !Ref EnvironmentName
+# 
+Parameters:
+  EnvironmentName:
+    Default: staging
+    Description: Name of the environment for this stack 
+    Type: String
+
+#
+# Resources
+# @description Auto create a resource of type LoadBalancer (AWS::ElasticLoadBalancingV2::LoadBalancer)
+# @param {string} ref - yaml reference, we call it: "LoadBalancer" 
+# @param {string} RepositoryName - name of the repository/registry
+#
+Resources:
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: sca-loadbalancer
+      Subnets:
+      - Fn::ImportValue:
+          !Join [":", [ !Ref EnvironmentName, "SubnetAZ1Public" ]]
+      - Fn::ImportValue:
+          !Join [ ":", [ !Ref EnvironmentName, "SubnetAZ2Public" ]]
+      SecurityGroups:
+        - !Ref LoadBalancerSecurityGroup
+
+  #
+  # @name LoadBalancerSecurityGroup - Security Group for the LoadBalancer  
+  #
+  LoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for loadbalancer to services on ECS
+      VpcId:
+        Fn::ImportValue:
+          !Join [ ":", [ !Ref EnvironmentName, "VPC" ]]
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: -1
+
+  #
+  # @name LoadBalancerListener - Create an HTTP Listener for Your Application Load Balancer.
+  #
+  LoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref LoadBalancer
+      Protocol: HTTP
+      Port: 80
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref DefaultTargetGroup
+
+  #
+  # @name DefaultTargetGroup - 
+  #
+  DefaultTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: loadbalancer-default-target-group
+      VpcId:
+        Fn::ImportValue:
+          !Join [ ":", [ !Ref EnvironmentName, "VPC" ]]
+      Protocol: HTTP
+      Port: 80
+
+#
+# @name Outputs 
+# @description  This section contains the exported values we can use for other templates using the "!Ref"
+#               Here we export he ARN (AWS Resource Name - a unique ID) the uniques ID for our ECR Repo
+# @return LoadBalancerDNS - Get the Loadbancer DNS
+#
+# @see Ref - https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-ref.html
+#       
+Outputs:
+  #
+  # @return LoadBalancerDNS - Get the Loadbancer DNS
+  #  
+  LoadBalancerDNS:
+    Description: Domain name for the loadbalancer
+    Value: !GetAtt LoadBalancer.DNSName
+    Export:
+      Name: !Join [':', [ !Ref EnvironmentName, SCADevTestLoadBalancerDNS ]]
+
+  #
+  # @return LoadBalancerListener - Get the Loadbancer DNS
+  #
+  LoadBalancerListener:
+    Description: loadbalancer listener
+    Value: !Ref LoadBalancerListener
+    Export:
+      Name: !Join [':', [ !Ref EnvironmentName, SCADevTestLoadBalancerListener ]]
+
+  #
+  # @return LoadBalancerSecurityGroup - Get the Loadbancer Security Group 
+  #
+  LoadBalancerSecurityGroup:
+    Description: Loadbalancer security group
+    Value: !Ref LoadBalancerSecurityGroup
+    Export:
+      Name: !Join [':', [ !Ref EnvironmentName, SCADevTestLoadBalancerSecurityGroup ]]
+
