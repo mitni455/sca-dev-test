@@ -1,0 +1,90 @@
+#############################
+#
+# Build 
+# 
+FROM node:12-alpine as builder
+WORKDIR /usr/src/app
+COPY package* ./
+COPY ./cypress /usr/src/app/cypress
+COPY cypress.json ./
+RUN pwd && ls -a 
+# COPY . /usr/src/app
+RUN ["yarn", "install"]
+COPY . /usr/src/app
+
+
+
+#############################
+#
+# Build for Prod 
+# with Environment variables 
+# 
+FROM node:12-alpine as build4prod
+WORKDIR /usr/src/app
+COPY --from=builder /usr/src/app ./
+ENV NODE_ENV production
+RUN ["yarn", "run", "build"]
+
+
+#############################
+#
+# Code Quality and Security
+# @tutorial https://www.sonarqube.org/ 
+# 
+# FROM newmitch/sonar-scanner:latest as quality
+# COPY --from=builder /usr/src/app/src /root/src
+
+
+
+#############################
+#
+# @name Tests
+# 
+FROM node:12-alpine as testsunit
+WORKDIR /usr/src/app
+COPY --from=builder /usr/src/app/ .
+RUN ["yarn", "run", "test:unit"]
+
+
+FROM cypress/base:12.6.0  as testse2e
+WORKDIR /usr/src/app
+COPY --from=builder /usr/src/app/ .
+RUN npx cypress install
+RUN npx cypress verify
+RUN npx cypress run  --spec **/*.feature
+
+
+
+
+
+#############################
+#
+# Dev Environment 
+# 
+FROM node:12-alpine as dev
+WORKDIR /usr/src/app
+COPY --from=builder /usr/src/app ./
+
+# @description Optional volume to map to the code folder 
+# @usage    cli:     docker -v $PWD/my_computer:/usr/src/app 
+# @usage    compose: 
+#               service_name:
+#                   volume: 
+#                       - "my_computer:/usr/src/app"
+VOLUME /usr/src/app 
+
+
+ENV NODE_ENV development
+ENV MICROSERVICE_BFF https://todo.com
+
+
+EXPOSE 8081
+CMD ["yarn", "run", "start:dev"]
+
+
+
+#############################
+#
+# Prod Environment 
+# 
+# @todo Docker multi build does not support selective running yet. So both Dev and Prod would run 

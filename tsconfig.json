@@ -1,0 +1,36 @@
+{
+    "compilerOptions": {
+        "outDir": "./dist/",
+        "sourceMap": true,
+        "noImplicitAny": false,
+        "module": "commonjs",
+        "target": "es5",
+        "jsx": "react",
+        "esModuleInterop" : true,
+        "allowJs": true,
+        "moduleResolution": "node",
+        "allowSyntheticDefaultImports": true,
+        "typeRoots" : [
+            "./node_modules/@types",
+            "./@types"
+        ],
+        "strict": false,
+        "strictNullChecks": false,
+
+        "baseUrl": "./",
+        "resolveJsonModule": true, 
+        "paths": {
+            "@src/*":        ["src/*"],
+            "@redux/*":      ["src/redux/*"],
+            "@components/*": ["src/components/*"],
+            "@services/*":   ["src/services/*"],
+            "@utils/*":      ["src/utils/*"],
+            "@config/*":     ["src/config/*"],
+            "@models/*":     ["src/models/*"],
+        }
+    },
+    "exclude": [
+        "node_modules", 
+        "@todo__cypress"
+    ]
+}

@@ -1,0 +1,76 @@
+#############################
+#
+# @name Build 
+# @desc Copy the package and install before copying the other file because it helps with Docker caching
+#       If we just copy everything, the entire npm install will need to run again 
+# 
+FROM node:12-alpine as builder
+WORKDIR /usr/src/app
+COPY package* ./
+RUN ["yarn", "install"]
+COPY . /usr/src/app
+
+
+
+#############################
+#
+# @name build4prod
+# @desc Build for Prod  with Environment variables 
+# @requires builder
+# @todo Set other environment defaults 
+# 
+FROM node:12-alpine as build4prod
+WORKDIR /usr/src/app
+COPY --from=builder /usr/src/app ./
+ENV NODE_ENV production
+RUN ["yarn", "run", "build"]
+
+
+
+#############################
+#
+# @name quality
+# @desc Code Quality and Security or kill the build 
+# @requires builder
+#
+# @tutorial https://www.sonarqube.org/ 
+# 
+FROM newmitch/sonar-scanner:latest as quality
+COPY --from=builder /usr/src/app/src /root/src
+
+
+
+#############################
+#
+# @name Tests
+# @desc Run tests or kill the build 
+# @requires builder
+# 
+FROM node:12-alpine as tests
+WORKDIR /usr/src/app
+COPY --from=builder /usr/src/app/ .
+RUN ["yarn", "test"]
+
+
+
+#############################
+#
+# @name Dev Environment 
+# 
+# @todo Docker multi build does not support selective running yet. So both Dev and Prod would run 
+
+
+
+#############################
+#
+# @name Prod Environment 
+# @desc Cool man the build is done, lets deploy to nginx 
+# @requires build4prod
+# 
+FROM nginx:1.17.4 as prod
+
+COPY --from=build4prod /usr/src/app/dist /usr/share/nginx/html
+COPY ./deployment/nginx/default.conf.template /etc/nginx/conf.d/default.conf.template
+COPY ./deployment/nginx/nginx.conf /etc/nginx/nginx.conf
+
+CMD /bin/bash -c "envsubst '\$PORT' < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf" && nginx -g 'daemon off;'

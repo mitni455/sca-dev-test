@@ -1,0 +1,44 @@
+version: '3.7'
+services:
+
+  #
+  # @name client-react-dev
+  # @tier client
+  # @appname react
+  # @ environment dev 
+  # @description Client React App with WebPack 
+  #
+  client-react-dev:
+    build: 
+      context: . 
+      dockerfile: Dockerfile.dev
+    command: yarn run start:dev 
+    environment:
+      NODE_ENV: development 
+      PORT: 8081
+    depends_on:
+      - ms-bff-dev 
+    ports: 
+      - 8081:8081
+  
+  #
+  # @name ms-bff-dev
+  # @tier microservice (ms) 
+  # @appname backend for frontend (BFF)
+  # @environment dev 
+  # @description BFF Microservice for the react app - kinda like a mini gateway 
+  # @todo Integrate with NestJs API soon 
+  #
+  ms-bff-dev:
+    image: bitnami/express:latest 
+    tty: true # debugging capabilities
+    command: npm start 
+    environment:
+      NODE_ENV: development 
+      PORT: 3000
+    ports:
+      - 3000:3000 
+
+
+
+
