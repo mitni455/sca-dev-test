@@ -1,0 +1,22 @@
+html {
+    display: block;
+    width: 100vw;
+    height: 100vh;
+}
+
+body {
+    display: block;
+    width: 100vw;
+    height: 100vh;
+    background: #272b31;
+    color: white;
+    font-family: helvetica neue;
+    -webkit-font-smoothing: antialiased;
+    padding: 0px;
+    margin: 0px;
+    overflow: hidden;
+}
+
+.MuiFormLabel-root {
+    color: rgba(255, 255, 255, .8) !important;
+}
