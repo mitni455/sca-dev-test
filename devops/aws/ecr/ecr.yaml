@@ -1,0 +1,46 @@
+#
+# Repo key: AwsEcrDockerRepo
+# Repo name: "docker-repo-of-doom"
+# Repo ARN: AwsEcrDockerRepoArn 
+# ARN is the AWS Resource name 
+#
+AWSTemplateFormatVersion: "2010-09-09"
+Description: ECR repo for Developer Test
+
+#
+# Paramaters
+# @description Read from the ECR parameters json (ecr.params.json) to set variables dynamically
+# 
+# @param {string} RepositoryName - name of the repository/registry
+# @usage !Ref RepositoryName
+# 
+Parameters: 
+  RepositoryName:
+    Description: The ECR registry name
+    Type: String
+    Default: "docker-repo-of-doom"
+#
+# Resources
+# @description Auto create a resource of type Elastic Container Registry (AWS::ECR::Repository)
+# @param {string} ref - yaml reference, we call it: "AwsEcrDockerRepo" 
+# @param {string} RepositoryName - name of the repository/registry
+#
+Resources:
+  AwsEcrDockerRepo:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Ref RepositoryName
+
+#
+# @description  This section contains the exported values we can use for other templates using the "!Ref"
+#               Here we export he ARN (AWS Resource Name - a unique ID) the uniques ID for our ECR Repo
+# @param {string} ref - yaml reference, we call it: "AwsEcrDockerRepoArn" 
+# @param {string} Name - exported key value pair name: AwsEcrDockerRepoArn=AwsEcrDockerRepo.Arn
+#
+# @see Fn::GetAtt - This function can be used to fetch certain attributes of the resource.
+#      
+Outputs:
+  AwsEcrDockerRepoArn:
+    Value: !GetAtt AwsEcrDockerRepo.Arn
+    Export:
+      Name: AwsEcrDockerRepoArn
